@@ -1,6 +1,8 @@
 # Modeling-PV-Power-On-6yrs-Spatiotemporal-Data
 Forecasting the output power of photovoltaic (PV) arrays using 3 &amp; 6 years of weather and PV output power data using both machine &amp; deep learning
 
+Python version 3.10.8 was used in this study.
+
 "Further Consolidated Data, HnL":
 The Dataset. It contains the datasets for each city for 3 and 6 years in length. The first five sheets has 3 years of data for all five cities, while the last four sheets have the complete 6 years of data for the cities in California. The units of the 22 parameters were omitted from the dataset for simplcity when testing, but the parameters and their units can be found in the paper.
 
