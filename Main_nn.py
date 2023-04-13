@@ -13,6 +13,7 @@ from sklearn.metrics import r2_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats as stats
 
 #File Imports
 import HelperFunctions as hf
@@ -21,10 +22,15 @@ import MineLSTM as mylstm
 import MineGRU as mygru
 
 """Explaining the layout of the Excel""" 
-train_idx = 6 #Train City Index
-test_idx = 5 #Test City Index
+train_idx = 2 #Train City Index
+test_idx = 2 #Test City Index
 City_dict = {0:'Amherst',1:'Davis',2:'Huron',3:'Santa Barbara',4:'La Jolla',
            5:'Davis 6yr',6:'Huron 6yr',7:'Santa Barbara 6yr',8:'La Jolla 6yr'}
+
+#Type of normalization
+Norm_dict = {0:'Min-Max',1:'Z-score',2:'Decimal'}
+norm_idx = 0
+
 
 """Loading of City Data"""
 #Importing/Loading Data
@@ -35,17 +41,14 @@ df_City3Year2 = df_City3Year2.dropna()
 
 
 """Generating the Heatmap"""
-df_corr = df_City3Year.corr()
+df_corr = df_City3Year.corr(method='kendall')
 mask = np.triu(np.ones_like(df_corr, dtype=bool))
 f, ax = plt.subplots(figsize=(18,18))
 sns.heatmap(df_corr, mask=mask, cmap='mako_r', vmin=-1, vmax=1, center=0, annot=True, fmt='.2f',
             square=True, linewidths=.5, cbar_kws={"shrink": .8});
-plt.title('Triangular Correlation Heatmap - {}'.format(City_dict[train_idx]));
 
 
 """Miscellaneous Setup"""
-Sequential_Data = True
-
 #The size of the testing batch. Training size is 1 - {this value}
 TestBatch_Size = 0.3
 
@@ -65,9 +68,18 @@ Column_names = ['Year','Month','Day','Hour','Minute','DHI','DNI','GHI','Clearsky
                 'Precipitable Water','Wind Direction','Relative Humidity','Temperature','Pressure','Output Power']
 
 
-"""Pre-Processing of Data"""
-df_City3Year, Scalers = hf.Scale_Columns(df_City3Year,Columns=Column_names,Scalers=None)
-df_City3Year2, Scalers = hf.Scale_Columns(df_City3Year2,Columns=Column_names,Scalers=Scalers)
+"""Preprocessing of Data"""
+#Normalization method
+if Norm_dict[norm_idx] == 'Min-Max':
+    df_City3Year, Scalers = hf.Scale_Columns(df_City3Year,Columns=Column_names,Scalers=None)
+    df_City3Year2, Scalers = hf.Scale_Columns(df_City3Year2,Columns=Column_names,Scalers=Scalers)
+elif Norm_dict[norm_idx] == 'Z-score':
+    df_City3Year = df_City3Year.apply(stats.zscore)
+    df_City3Year2 = df_City3Year2.apply(stats.zscore)
+elif Norm_dict[norm_idx] == 'Decimal':
+    df_City3Year = hf.Decimal_Scale(df_City3Year, Column_names)
+    df_City3Year2 = hf.Decimal_Scale(df_City3Year2, Column_names)
+
 
 #Sequentially splitting the data into train & test
 X_train, X_test, Y_train, Y_test = hf.Sequential_Split(df_City3Year, TestBatch_Size) #Splits for first city
@@ -88,8 +100,9 @@ for k, i in enumerate(Random_Seed):
     print('-- -- Iteration {} Complete -- --\n'.format(k+1))
 
 
-#Notifies which city the 
+#Notifies which city & normaliztion method were used
 print('Trained model on {} data, Tested on {}\n'.format(City_dict[train_idx],City_dict[test_idx]))
+print('Normalization Method: {}'.format(Norm_dict[norm_idx]))
 
 """Printing MSE results, the mu, & STDev"""
 print('LSTM MSE mu & std:', hf.mustd(hf.read_results(Results.path_result + Results.lstm_ts)))
