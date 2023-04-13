@@ -100,6 +100,16 @@ def Scale_Columns(df_City,Columns,Scalers):
     return df_City,Scalers   
 
 
+"""Decimal Normalization"""
+def Decimal_Scale(df_City,column):
+    '''
+    Takes in the dataframe, returns the dataframe normalized using decimal scale
+    '''
+    for i in column:
+        df_City[i] = df_City[i]/10**4
+    return df_City
+
+
 """Sliding Window Function"""
 def save_pkl(df_X,df_Y,Dict,period,path):
     '''
