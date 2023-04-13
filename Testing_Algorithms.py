@@ -5,13 +5,14 @@ Created on Tue Nov 15 17:29:59 2022
 
 @author: evanesauter
 
-Simple Testing of Differen Algorithms
+Simple Testing of Different Algorithms
 """
 
 #Imports
 from sklearn.metrics import r2_score
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
 import HelperFunctions as hf
 
 #Imports for Models, in order of appearance
@@ -37,6 +38,11 @@ test_idx = 2 #Test City Index
 City_dict = {0:'Amherst',1:'Davis',2:'Huron',3:'Santa Barbara',4:'La Jolla',
            5:'Davis 6yr',6:'Huron 6yr',7:'Santa Barbara 6yr',8:'La Jolla 6yr'}
 
+#Type of normalization
+Norm_dict = {0:'Min-Max',1:'Z-score',2:'Decimal'}
+norm_idx = 2
+
+
 """Loading of City Data"""
 #Importing/Loading Data
 df_City3Year = pd.read_excel("Further Consolidated Data, HnL.xlsx", sheet_name = train_idx)
@@ -54,10 +60,18 @@ Column_names = ['Year','Month','Day','Hour','Minute','DHI','DNI','GHI','Clearsky
                 'Clearsky GHI','Cloud Type','Dew Point','Solar Zenith Angle','Surface Albedo','Wind Speed',
                 'Precipitable Water','Wind Direction','Relative Humidity','Temperature','Pressure','Output Power']
 
-#Normalizing the entire Dataframe
-df_City3Year, Scalers = hf.Scale_Columns(df_City3Year,Columns=Column_names,Scalers=None)
-df_City3Year2, Scalers = hf.Scale_Columns(df_City3Year2,Columns=Column_names,Scalers=Scalers)
 
+"""Pre-Processing of Data"""
+#Normalization method
+if Norm_dict[norm_idx] == 'Min-Max':
+    df_City3Year, Scalers = hf.Scale_Columns(df_City3Year,Columns=Column_names,Scalers=None)
+    df_City3Year2, Scalers = hf.Scale_Columns(df_City3Year2,Columns=Column_names,Scalers=Scalers)
+elif Norm_dict[norm_idx] == 'Z-score':
+    df_City3Year = df_City3Year.apply(stats.zscore)
+    df_City3Year2 = df_City3Year2.apply(stats.zscore)
+elif Norm_dict[norm_idx] == 'Decimal':
+    df_City3Year = hf.Decimal_Scale(df_City3Year, Column_names)
+    df_City3Year2 = hf.Decimal_Scale(df_City3Year2, Column_names)
 
 #Array for the Random State
 Random_Seed = [0,10,20] 
@@ -108,11 +122,10 @@ Scores_Bagging_rmse = []
 Scores_ElasticNet_rmse = []
 
 
-"""Iterates through all the models"""
+"""Running the ML Models"""
 for k, i in enumerate(Random_Seed):
     
-    
-    """Preprocessing of Data"""
+    """Splitting of Data"""
     if Sequential is True: 
         #Splitting Data Sequentially, uncomment when necessary
         X_train, X_test, Y_train, Y_test = hf.Sequential_Split(df_City3Year, TestBatch_Size) #Splits for first city
@@ -278,9 +291,9 @@ for k, i in enumerate(Random_Seed):
     print('-- -- Iteration {} Complete -- --\n'.format(k+1))
    
     
-#Notifies which city the training & testing occured at
+#Notifies which city the training & testing occured at  & normalization type
 print('Trained model on {} data, Tested on {}\n'.format(City_dict[train_idx],City_dict[test_idx]))    
-
+print('Normalization Method: {}'.format(Norm_dict[norm_idx]))
 
 """Printing the R2 Scores, Mean, & Standard Deviation of each Model"""
 print('\n-- -- The R2 Scores are -- --')
