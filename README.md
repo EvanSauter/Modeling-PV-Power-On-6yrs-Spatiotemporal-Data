@@ -6,6 +6,9 @@ Python version 3.10.8 was used in this study.
 "Further Consolidated Data, HnL":
 The Dataset. It contains the datasets for each city for 3 and 6 years in length. The first five sheets has 3 years of data for all five cities, while the last four sheets have the complete 6 years of data for the cities in California. The units of the 22 parameters were omitted from the dataset for simplcity when testing, but the parameters and their units can be found in the paper.
 
+"Master - Comparing Algorithm Results":
+A .csv file that contains the consolidated results from the study.
+
 "Main_nn":
 The main function for the deep learning models developed. It relies on "HelperFunctions", "MineLSTM", "MineGRU". To adjust which city the models are trained or tested on, simply adjust the int that correlates to a different key value of the dict of cities. Only sequential splitting is conducted.
 
